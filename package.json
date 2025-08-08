@@ -29,10 +29,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize-auto.git"
+    "url": "https://github.com/snipervld/sequelize-auto.git"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize-auto/issues"
+    "url": "https://github.com/snipervld/sequelize-auto/issues"
   },
   "nyc": {
     "exclude": [
@@ -58,7 +58,8 @@
   "author": "Steve Schmitt (https://github.com/steveschmitt)",
   "contributors": [
     "Daniel Durante <me@danieldurante.com>",
-    "Yuping Zuo (https://github.com/zypA13510)"
+    "Yuping Zuo (https://github.com/zypA13510)",
+    "Vladimir Zzgray (https://github.com/snipervld)"
   ],
   "license": "MIT",
   "dependencies": {
