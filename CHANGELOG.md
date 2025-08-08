@@ -1,5 +1,9 @@
 # sequelize-auto change log
 
+## [0.8.9] - 2025-08-08
+
+* `bigint` and `citext` are treated as strings
+
 ## [0.8.7] - 2021-12-08
 
 * Don't write field comments for mssql, because it throws error in sequelize.sync() (#567)
