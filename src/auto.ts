@@ -72,7 +72,8 @@ export class SequelizeAuto {
   }
 
   generate(tableData: TableData) {
-    const dialect = dialects[this.sequelize.getDialect() as Dialect];
+    const sequelizeDialect = this.sequelize.getDialect() as Dialect;
+    const dialect = dialects[sequelizeDialect] ?? unsupportedDialect(sequelizeDialect);
     const generator = new AutoGenerator(tableData, dialect, this.options);
     return generator.generateText();
   }
@@ -94,6 +95,11 @@ export class SequelizeAuto {
   }
 
 }
+
+function unsupportedDialect(dialect: Dialect): never {
+    throw new Error(`Unsupported dialect '${dialect}'`);
+}
+
 module.exports = SequelizeAuto;
 module.exports.SequelizeAuto = SequelizeAuto;
 module.exports.default = SequelizeAuto;

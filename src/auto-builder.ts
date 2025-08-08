@@ -19,7 +19,8 @@ export class AutoBuilder {
   constructor(sequelize: Sequelize, options: AutoOptions) {
     this.sequelize = sequelize;
     this.queryInterface = this.sequelize.getQueryInterface();
-    this.dialect = dialects[this.sequelize.getDialect() as Dialect];
+    const sequelizeDialect = this.sequelize.getDialect() as Dialect;
+    this.dialect = dialects[sequelizeDialect] || unsupportedDialect(sequelizeDialect);
     this.includeTables = options.tables;
     this.skipTables = options.skipTables;
     this.schema = options.schema;
@@ -234,4 +235,8 @@ function isTableEqual(a: Table, b: Table) {
 
 function makeTableQName(table: Table) {
   return [table.table_schema, table.table_name].filter(Boolean).join(".");
+}
+
+function unsupportedDialect(dialect: Dialect): never {
+  throw new Error(`Unsupported dialect '${dialect}'`);
 }
