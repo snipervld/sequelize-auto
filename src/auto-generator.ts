@@ -375,6 +375,10 @@ export class AutoGenerator {
             }
 
           } else if (defaultVal.match(/\(\)/g)) {
+            if (this.dialect.name === 'postgres' && defaultVal.toUpperCase() === '(now() AT TIME ZONE utc'.toUpperCase()) {
+                defaultVal = `(now() AT TIME ZONE \\'utc\\')`; // escape UTC
+            }
+
             // embedded function, pass as literal
             val_text = "Sequelize.Sequelize.literal('" + defaultVal + "')";
 
