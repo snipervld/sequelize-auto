@@ -12,7 +12,7 @@ export class AutoBuilder {
   dialect: DialectOptions;
   includeTables?: string[];
   skipTables?: string[];
-  schema?: string;
+  schemas: string[];
   views: boolean;
   tableData: TableData;
 
@@ -23,7 +23,7 @@ export class AutoBuilder {
     this.dialect = dialects[sequelizeDialect] || unsupportedDialect(sequelizeDialect);
     this.includeTables = options.tables;
     this.skipTables = options.skipTables;
-    this.schema = options.schema;
+    this.schemas = _.union(options.schemas, options.schema);
     this.views = !!options.views;
 
     this.tableData = new TableData();
@@ -31,30 +31,56 @@ export class AutoBuilder {
 
   build(): Promise<TableData> {
 
-    let prom: Promise<any[]>;
+    let prom: Promise<{ schema: string | undefined, tableResult: any[] }[]>;
     if (this.dialect.showTablesQuery) {
-      const showTablesSql = this.dialect.showTablesQuery(this.schema);
-      prom = this.executeQuery<string>(showTablesSql);
+      prom =
+        Promise.all(_.map(this.schemas, schema => {
+          const showTablesSql = this.dialect.showTablesQuery!(schema);
+          return this.executeQuery<string>(showTablesSql).then(tableResult => ({ schema, tableResult }));
+        }));
     } else {
-      prom = this.queryInterface.showAllTables();
+      prom = this.queryInterface.showAllTables().then(tableResult => [{ schema: void 0, tableResult }]);
     }
 
     if (this.views) {
       // Add views to the list of tables
-      prom = prom.then(tr => {
-        // in mysql, use database name instead of schema
-        const vschema = this.dialect.name === 'mysql' ? this.sequelize.getDatabaseName() : this.schema;
-
-        const showViewsSql = this.dialect.showViewsQuery(vschema);
-        return this.executeQuery<string>(showViewsSql).then(tr2 => tr.concat(tr2));
-      });
+      if (this.dialect.name === 'mysql') {
+        prom = prom.then(tr => {
+          const showViewsSql = this.dialect.showViewsQuery(this.sequelize.getDatabaseName());
+          return this.executeQuery<string>(showViewsSql).then(tableResult => tr.concat({ schema: void 0, tableResult }));
+        });
+      } else {
+        prom = prom.then(tr => {
+          return Promise.all(_.map(this.schemas, schema => {
+            const showViewsSql = this.dialect.showViewsQuery(schema);
+            return this.executeQuery<string>(showViewsSql).then(tableResult => ({ schema, tableResult }));
+          }))
+            .then(tr2 => tr.concat(tr2));
+        });
+      }
     }
 
-    return prom.then(tr => this.processTables(tr))
+    const promFlatten = prom.then(trs => {
+      return _.reduce(trs, (accum, tr) => {
+        const it = accum.find(x => x.schema === tr.schema);
+
+        if (it) {
+          it.tableResult = _.concat(it.tableResult, tr.tableResult);
+        } else {
+          accum.push({ schema: tr.schema, tableResult: tr.tableResult });
+        }
+
+        return accum;
+      }, [] as { schema: string | undefined, tableResult: any[] }[]);
+    });
+
+    return promFlatten
+      .then(trs => Promise.all(_.map(trs, tr => this.processTables(tr.tableResult, tr.schema))))
+      .then(tds => _.reduce(tds, (accum, td) => TableData.merge(accum, td), new TableData()))
       .catch(err => { console.error(err); return this.tableData; });
   }
 
-  private processTables(tableResult: any[]) {
+  private processTables(tableResult: any[], schema: string | undefined) {
     // tables is an array of either three things:
     // * objects with two properties table_name and table_schema
     // * objects with two properties tableName and tableSchema
@@ -65,16 +91,16 @@ export class AutoBuilder {
     let tables = _.map(tableResult, t => {
       return {
         table_name: t.table_name || t.tableName || t.name || String(t),
-        table_schema: t.table_schema || t.tableSchema || t.schema || this.schema || null
+        table_schema: t.table_schema || t.tableSchema || t.schema || schema || null
       } as Table;
     });
 
     // include/exclude tables
     if (this.includeTables) {
-      const optables = mapOptionTables(this.includeTables, this.schema);
+      const optables = mapOptionTables(this.includeTables, schema);
       tables = _.intersectionWith(tables, optables, isTableEqual);
     } else if (this.skipTables) {
-      const skipTables = mapOptionTables(this.skipTables, this.schema);
+      const skipTables = mapOptionTables(this.skipTables, schema);
       tables = _.differenceWith(tables, skipTables, isTableEqual);
     }
 

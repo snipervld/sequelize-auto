@@ -388,6 +388,7 @@ auto.run();
 
 1. `bigint` columns are treated as strings.
 2. `citext` columns are treated as strings.
+3. New option `--schemas`/`-S` - support for multiple schemas.
 
 ## Testing
 

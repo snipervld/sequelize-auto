@@ -116,6 +116,12 @@ const argv = require('yargs')
     type: 'string',
     alias: 's'
   })
+  .option('schemas', {
+    description: 'Space-separated database schemas from which to retrieve tables.\nCombined with the value `schema` property.',
+    array: true,
+    type: 'string',
+    alias: 'S'
+  })
   .option('views', {
     description: 'Include database views in generated models',
     type: 'boolean',
@@ -206,6 +212,7 @@ async function readPassword() {
   configFile.skipFields = argv.skipFields || configFile.skipFields || null;
   configFile.pkSuffixes = argv.pkSuffixes || configFile.pkSuffixes || null;
   configFile.schema = argv.schema || configFile.schema;
+  configFile.schemas = argv.schemas || configFile.schemas;
   configFile.lang = argv.lang || configFile.lang || 'es5';
   configFile.caseModel = argv.caseModel || configFile.caseModel || 'o';
   configFile.caseFile = argv.caseFile || configFile.caseFile || 'o';
