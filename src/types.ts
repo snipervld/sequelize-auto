@@ -72,6 +72,16 @@ export interface Relation {
 }
 
 export class TableData {
+  static merge(a: TableData, b: TableData) {
+    const t = new TableData();
+    t.tables = _.assign({}, a.tables, b.tables);
+    t.foreignKeys = _.assign({}, a.foreignKeys, b.foreignKeys);
+    t.hasTriggerTables = _.assign({}, a.hasTriggerTables, b.hasTriggerTables);
+    t.indexes = _.assign({}, a.indexes, b.indexes);
+    t.relations = _.assign({}, a.relations, b.relations);
+    t.text = _.assign({}, a.text, b.text);
+    return t;
+  }
   /** Fields for each table; indexed by schemaName.tableName */
   tables: { [tableName: string]: { [fieldName: string]: ColumnDescription; }; };
   /** Foreign keys for each table; indexed by schemaName.tableName */
@@ -163,8 +173,13 @@ export interface AutoOptions {
   password?: string;
   /** Database port */
   port?: number;
-  /** Database schema to export */
+  /**
+   * Database schema to export
+   * @deprecated Use `schemas` property
+   */
   schema?: string;
+  /** Database schemas to export */
+  schemas?: string[];
   /** Whether to singularize model names */
   singularize: boolean;
   /** Tables to skip exporting */

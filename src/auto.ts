@@ -26,9 +26,15 @@ export class SequelizeAuto {
     }
 
     if (database instanceof Sequelize) {
+      if (options
+        && (database as any).options?.schema
+        && _.union(options.schemas, options.schema).length > 1) {
+        throw new Error('Cannot use provided schema-specific instance of Sequelize in case of multiple schemas');
+      }
+
       this.sequelize = database;
     } else {
-      this.sequelize = new Sequelize(database, username, password, options || {});
+      this.sequelize = new Sequelize(database, username, password, _.assign({}, options, { schema: void 0, schemas: void 0 }));
     }
 
     this.options = _.extend({

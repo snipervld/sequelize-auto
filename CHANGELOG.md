@@ -3,6 +3,7 @@
 ## [0.8.9] - 2025-08-08
 
 * `bigint` and `citext` are treated as strings
+* Add `--schemas`/`-S` option (support for multiple schemas)
 
 ## [0.8.7] - 2021-12-08
 
