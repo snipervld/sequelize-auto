@@ -1,6 +1,6 @@
 {
-  "name": "sequelize-auto",
-  "version": "0.8.7",
+  "name": "snipervld/sequelize-auto",
+  "version": "0.8.9",
   "publishConfig": {
     "tag": "latest"
   },

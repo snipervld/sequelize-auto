@@ -1,9 +1,5 @@
 # Sequelize-Auto
 
-<!-- [![Greenkeeper badge](https://badges.greenkeeper.io/sequelize/sequelize-auto.svg)](https://greenkeeper.io/) -->
-
-[![Build Status](http://img.shields.io/travis/sequelize/sequelize-auto/master.svg)](https://travis-ci.org/sequelize/sequelize-auto) [![Build status](https://ci.appveyor.com/api/projects/status/bf9lb89rmpj6iveb?svg=true)](https://ci.appveyor.com/project/durango/sequelize-auto) [![Code Climate](https://codeclimate.com/github/sequelize/sequelize-auto/badges/gpa.svg)](https://codeclimate.com/github/sequelize/sequelize-auto) [![Test Coverage](https://codeclimate.com/github/sequelize/sequelize-auto/badges/coverage.svg)](https://codeclimate.com/github/sequelize/sequelize-auto/coverage)
-
 Automatically generate models for [SequelizeJS](https://github.com/sequelize/sequelize) via the command line.
 
 ## Install
@@ -386,7 +382,12 @@ auto.run();
 
 ## Resources
 
- - [Changelog](https://github.com/sequelize/sequelize-auto/blob/master/CHANGELOG.md)
+ - [Changelog](https://github.com/snipervld/sequelize-auto/blob/master/CHANGELOG.md)
+
+## Changes from sequelize/sequelize_auto
+
+1. `bigint` columns are treated as strings.
+2. `citext` columns are treated as strings.
 
 ## Testing
 
@@ -412,4 +413,4 @@ Then run one of the test commands below:
     # sqlite only
     npm run test-sqlite
 
-Also see the [sample](https://github.com/sequelize/sequelize-auto/tree/master/sample) directory which has an example including database scripts, export script, and a sample app.
+Also see the [sample](https://github.com/snipervld/sequelize-auto/tree/master/sample) directory which has an example including database scripts, export script, and a sample app.
