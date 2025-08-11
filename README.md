@@ -64,6 +64,8 @@ Options:
 --noInitModels           Prevent writing the init-models file        [boolean]
 -n, --noWrite            Prevent writing the models to disk          [boolean]
 -s, --schema             Database schema from which to retrieve tables[string]
+-S, --schemas            Space-separated database schemas from which to retrieve tables.
+                         Combined with the value `schema` property.  [array]
 -v, --views              Include database views in generated models  [boolean]
 -l, --lang               Language for Model output: es5|es6|esm|ts
                           es5 = ES5 CJS modules (default)
