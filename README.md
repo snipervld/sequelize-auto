@@ -4,7 +4,7 @@ Automatically generate models for [SequelizeJS](https://github.com/sequelize/seq
 
 ## Install
 
-    npm install sequelize-auto
+    npm install @snipervld/sequelize-auto
 
 ## Prerequisites
 
