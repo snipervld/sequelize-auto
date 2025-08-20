@@ -12,7 +12,7 @@ export class AutoBuilder {
   dialect: DialectOptions;
   includeTables?: string[];
   skipTables?: string[];
-  schemas: string[];
+  schemas: string[] | [undefined];
   views: boolean;
   tableData: TableData;
 
@@ -24,6 +24,12 @@ export class AutoBuilder {
     this.includeTables = options.tables;
     this.skipTables = options.skipTables;
     this.schemas = _.union(options.schemas, options.schema);
+
+    // if schemas are not provided, scaffold all schemas (without it _.map won't iterate over schemas, because the array is empty)
+    if (!this.schemas.length) {
+      this.schemas = [void 0];
+    }
+
     this.views = !!options.views;
 
     this.tableData = new TableData();
