@@ -1,5 +1,9 @@
 # sequelize-auto change log
 
+## [0.8.10] - 2025-08-20
+
+* Fix an issue, when `sequelize-auto` does nothing if `schemas` or `schema` options are empty.
+
 ## [0.8.9] - 2025-08-08
 
 * `bigint` and `citext` are treated as strings
