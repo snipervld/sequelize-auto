@@ -1,5 +1,13 @@
 import { Utils } from "sequelize";
 
+/**
+ * Represents the min/max length bounds for string validation.
+ * null values indicate unbounded (no limit).
+ */
+export interface StringBounds {
+  min: number;
+  max: number | null;
+}
 
 export interface DialectOptions {
   name: string;
@@ -18,6 +26,11 @@ export interface DialectOptions {
   showGeographyTypeQuery?: (tableName: string, schemaName?: string) => string;
   showGeometryTypeQuery?: (tableName: string, schemaName?: string) => string;
   showPrecisionQuery?: (tableName: string, schemaName?: string) => string;
+  /**
+   * Returns the string length bounds for a given Sequelize type (e.g. 'DataTypes.STRING(100)').
+   * Based on the database-specific limitations for string types.
+   */
+  getStringBounds?: (sqType: string) => StringBounds | null;
 }
 
 export interface FKRow {

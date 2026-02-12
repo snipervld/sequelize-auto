@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { addTicks, DialectOptions, FKRow, makeCondition } from "./dialect-options";
+import { addTicks, DialectOptions, FKRow, makeCondition, StringBounds } from "./dialect-options";
 
 export const mysqlOptions: DialectOptions = {
   name: 'mysql',
@@ -93,6 +93,58 @@ export const mysqlOptions: DialectOptions = {
 
   showViewsQuery: (dbName?: string) => {
     return `select TABLE_NAME as table_name from information_schema.tables where table_type = 'VIEW' and table_schema = '${dbName}'`;
+  },
+
+  /**
+   * Returns string length bounds for MySQL/MariaDB.
+   * MySQL limits:
+   * - VARCHAR(n): 0 to n characters (max 65,535 bytes, ~16,383 for utf8mb4)
+   * - TEXT: 65,535 bytes (~16,383 utf8mb4 chars)
+   * - TINYTEXT: 255 bytes
+   * - MEDIUMTEXT: 16,777,215 bytes
+   * - LONGTEXT: 4,294,967,295 bytes
+   * - CHAR(n): 0 to n characters (max 255)
+   * 
+   * @param sqType Sequelize DataType string
+   * @returns StringBounds or null if not a string type
+   */
+  getStringBounds: (sqType: string): StringBounds | null => {
+    if (!sqType) return null;
+    
+    // Extract size from type like 100 from DataTypes.STRING(100)
+    const sizeMatch = sqType.match(/\((\d+)\)/);
+    const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
+    
+    if (sqType.startsWith('DataTypes.STRING')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    if (sqType.startsWith('DataTypes.CHAR')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    // DataTypes.TEXT without size modifier
+    if (sqType === 'DataTypes.TEXT') {
+      // Default TEXT in MySQL: 65,535 bytes (~16,383 utf8mb4 chars)
+      return { min: 0, max: 65535 };
+    }
+    
+    // TEXT('tiny') -> TINYTEXT: 255 bytes
+    if (sqType.includes("'tiny'") || sqType.includes('"tiny"')) {
+      return { min: 0, max: 255 };
+    }
+    
+    // TEXT('medium') -> MEDIUMTEXT: 16,777,215 bytes
+    if (sqType.includes("'medium'") || sqType.includes('"medium"')) {
+      return { min: 0, max: 16777215 };
+    }
+    
+    // TEXT('long') -> LONGTEXT: 4,294,967,295 bytes
+    if (sqType.includes("'long'") || sqType.includes('"long"')) {
+      return { min: 0, max: 4294967295 };
+    }
+    
+    return null;
   }
 
 };
