@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { addTicks, DialectOptions, FKRow, makeCondition } from "./dialect-options";
+import { addTicks, DialectOptions, FKRow, makeCondition, StringBounds } from "./dialect-options";
 
 export const postgresOptions: DialectOptions = {
   name: 'postgres',
@@ -140,6 +140,39 @@ export const postgresOptions: DialectOptions = {
     return `SELECT f_geometry_column AS column_name, type AS udt_name, srid AS data_type, coord_dimension AS element_type
     FROM geometry_columns
     WHERE f_table_name = '${tableName}'` + (!schemaName ? '' : ` AND f_table_schema = '${schemaName}'`);
+  },
+
+  /**
+   * Returns string length bounds for PostgreSQL.
+   * PostgreSQL limits:
+   * - VARCHAR(n): 0 to n characters (max n is 10,485,760)
+   * - TEXT: unlimited (up to 1GB)
+   * - CHAR(n): 0 to n characters
+   * 
+   * @param sqType Sequelize DataType string
+   * @returns StringBounds or null if not a string type
+   */
+  getStringBounds: (sqType: string): StringBounds | null => {
+    if (!sqType) return null;
+    
+    // Extract size from type like 100 from DataTypes.STRING(100)
+    const sizeMatch = sqType.match(/\((\d+)\)/);
+    const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
+    
+    if (sqType.startsWith('DataTypes.STRING')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    if (sqType.startsWith('DataTypes.CHAR')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    if (sqType.startsWith('DataTypes.TEXT')) {
+      // PostgreSQL TEXT has no practical limit (up to 1GB)
+      return { min: 0, max: null };
+    }
+    
+    return null;
   }
 
 };

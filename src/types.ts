@@ -200,6 +200,40 @@ export interface AutoOptions {
   pkSuffixes?: string[];
   /** Use `sequelize.define` instead of `init` for model initialization.  See issues #527, #559, #573 */
   useDefine: boolean;
+  /** Validation rules */
+  validationRules?: ValidationRule[];
+}
+
+export interface ValidationRule {
+  /** Types of validation that can be added and checked */
+  type: 'stringLengthCheck',
+  /** Error message template (with placeholders) for specific validation
+   * Any of provided placeholders will be substituted by code-generator.
+   * You can setting up it's amount by itself by setting up custom template message
+   * 
+   * @example
+   * - 'stringLengthCheck': 'Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}.' 
+   */
+  errorMessageTemplate: string,
+};
+
+/**
+ * Formats a string template by replacing placeholders with provided values.
+ * Similar to .NET's string.Format method.
+ * 
+ * @param template The string template with placeholders in {key} format
+ * @param params Object containing key-value pairs for substitution
+ * @returns The formatted string with placeholders replaced
+ * 
+ * @example
+ * formatString('{fieldName} max is {maxBound}', { fieldName: 'username', maxBound: 100 })
+ * // Returns: 'username max is 100'
+ */
+export function formatString(template: string, params: Record<string, string | number | null>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    const value = params[key];
+    return value !== undefined && value !== null ? String(value) : match;
+  });
 }
 
 export type TSField = { special: string[]; elementType: string; } & ColumnDescription;

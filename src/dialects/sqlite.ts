@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { addTicks, DialectOptions, FKRow } from "./dialect-options";
+import { addTicks, DialectOptions, FKRow, StringBounds } from "./dialect-options";
 
 export const sqliteOptions: DialectOptions = {
   name: 'sqlite',
@@ -77,6 +77,44 @@ export const sqliteOptions: DialectOptions = {
 
   showViewsQuery: () => {
     return `SELECT name FROM "sqlite_master" WHERE type='view'`;
+  },
+
+  /**
+   * Returns string length bounds for SQLite.
+   * SQLite limits:
+   * - All string types (VARCHAR, TEXT, CHAR) are stored as TEXT
+   * - Maximum length is SQLITE_MAX_LENGTH (default 1,000,000,000 bytes)
+   * - SQLite doesn't enforce VARCHAR(n) or CHAR(n) limits
+   * 
+   * Note: SQLite is dynamically typed and stores all text as TEXT.
+   * The size in VARCHAR(n) is not enforced by SQLite itself.
+   * 
+   * @param sqType Sequelize DataType string
+   * @returns StringBounds or null if not a string type
+   */
+  getStringBounds: (sqType: string): StringBounds | null => {
+    if (!sqType) return null;
+    
+    // Extract size from type like 100 DataTypes.STRING(100)
+    // SQLite doesn't enforce these limits, but we return them for application-level validation
+    const sizeMatch = sqType.match(/\((\d+)\)/);
+    const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
+    
+    if (sqType.startsWith('DataTypes.STRING')) {
+      // SQLite doesn't enforce limits, but we use the specified size for validation
+      // If no size specified, SQLite has no limit (effectively unbounded)
+      return { min: 0, max: size ?? null };
+    }
+    
+    if (sqType.startsWith('DataTypes.CHAR')) {
+      return { min: 0, max: size ?? null };
+    }
+    
+    if (sqType.startsWith('DataTypes.TEXT')) {
+      return { min: 0, max: null };
+    }
+    
+    return null;
   }
 
 };

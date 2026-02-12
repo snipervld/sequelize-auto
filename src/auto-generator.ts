@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { ColumnDescription } from "sequelize/types";
-import { DialectOptions, FKSpec } from "./dialects/dialect-options";
-import { AutoOptions, CaseFileOption, CaseOption, Field, IndexSpec, LangOption, makeIndent, makeTableName, pluralize, qNameJoin, qNameSplit, recase, Relation, singularize, TableData, TSField } from "./types";
+import { DialectOptions, FKSpec, StringBounds } from "./dialects/dialect-options";
+import { AutoOptions, CaseFileOption, CaseOption, Field, formatString, IndexSpec, LangOption, makeIndent, makeTableName, pluralize, qNameJoin, qNameSplit, recase, Relation, singularize, TableData, TSField, ValidationRule } from "./types";
 
 /** Generates text from each table in TableData */
 export class AutoGenerator {
@@ -25,6 +25,7 @@ export class AutoGenerator {
     singularize: boolean;
     useDefine: boolean;
     noIndexes?: boolean;
+    validationRules?: ValidationRule[];
   };
 
   constructor(tableData: TableData, dialect: DialectOptions, options: AutoOptions) {
@@ -265,6 +266,9 @@ export class AutoGenerator {
 
     let wroteAutoIncrement = false;
     const space = this.space;
+    
+    // Capture the Sequelize type for validation purposes
+    let sqType: string | null = null;
 
     // column's attributes
     const fieldAttrs = _.keys(fieldObj);
@@ -410,6 +414,11 @@ export class AutoGenerator {
           val = (fieldObj as any)[attr];
           val = _.isString(val) ? quoteWrapper + this.escapeSpecial(val) + quoteWrapper : val;
         }
+
+        if (attr === "type" && val) {
+          sqType = val;
+        }
+
         str += space[3] + attr + ": " + val;
       }
 
@@ -424,6 +433,34 @@ export class AutoGenerator {
     if (field !== fieldName) {
       str += space[3] + "field: '" + field + "',\n";
     }
+
+    const stringLengthValidationRule = this.options.validationRules?.filter(x => x.type === 'stringLengthCheck');
+    // Add string length validation for string types (if such rule exists in config)
+    if (stringLengthValidationRule && stringLengthValidationRule.length > 0) {
+      if (sqType && this.isStringSqType(sqType)) {
+          const bounds = this.getStringValidationBounds(sqType);
+          if (bounds && bounds.max !== null) {
+            const defaultMessage = 'Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}.';
+            const messageTemplate = stringLengthValidationRule[0].errorMessageTemplate || defaultMessage;
+            const message = formatString(messageTemplate, {
+              tableName: table,
+              fieldName: fieldName,
+              minBound: bounds.min,
+              maxBound: bounds.max,
+              dataType: sqType,
+            });
+            
+            str += space[3] + "validate: {\n";
+            str += space[4] + "len: {\n";
+            str += space[5] + `args: [${bounds.min}, ${bounds.max}],\n`;
+            str += space[5] + `msg: '${message}',\n`;
+            str += space[4] + "}\n";
+            str += space[3] + "},\n";
+          }
+        }
+    }
+
+    
 
     // removes the last `,` within the attribute options
     str = str.trim().replace(/,+$/, '') + "\n";
@@ -570,6 +607,58 @@ export class AutoGenerator {
     }
 
     return val as string;
+  }
+
+  private isStringSqType(sqType: string): boolean {
+    if (!sqType) {
+      return false;
+    }
+    
+    // Check if the Sequelize type is a string type
+    // Valid string types: STRING, STRING(n), TEXT, TEXT(tiny|medium|long), CHAR, CHAR(n)
+    if (
+      sqType.startsWith('DataTypes.STRING') ||
+      sqType.startsWith('DataTypes.TEXT') ||
+      sqType.startsWith('DataTypes.CHAR')
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Get string validation bounds.
+   * Each dialect provides its own implementation of getStringBounds
+   * based on database-specific limitations.
+   */
+  private getStringValidationBounds(sqType: string): StringBounds | null {
+    if (!sqType) {
+      return null;
+    }
+    
+    // Use dialect-specific implementation if available
+    if (this.dialect.getStringBounds) {
+      return this.dialect.getStringBounds(sqType);
+    }
+    
+    // Default fallback implementation
+    const sizeMatch = sqType.match(/\((\d+)\)/);
+    const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
+    
+    if (sqType.startsWith('DataTypes.STRING')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    if (sqType.startsWith('DataTypes.CHAR')) {
+      return { min: 0, max: size ?? 255 };
+    }
+    
+    if (sqType.startsWith('DataTypes.TEXT')) {
+      return { min: 0, max: null }; // TEXT is generally unbounded
+    }
+    
+    return null;
   }
 
   private getTypeScriptPrimaryKeys(table: string): Array<string> {

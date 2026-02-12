@@ -152,6 +152,69 @@ Alternatively, you can [Sequelize.import](http://docs.sequelizejs.com/en/latest/
 var User = require('path/to/user')(sequelize, DataTypes);
 ```
 
+## Validations
+
+You can enable automatic validations using the `validationRules` option. The `validationRules` is an array where you can configure different validation types, each with its own error message template. When provided, sequelize-auto will add corresponding validation rules into generated models.
+
+Currently, only one validation type is available: **`stringLengthCheck`**.
+
+### String Length Validation (`stringLengthCheck`)
+
+By default, when database operations fail due to string overflow errors (e.g., `value too long for type character varying(255)`), the error messages can be unfriendly to users.
+
+The `stringLengthCheck` validation rule adds Sequelize `validate.len` constraints to all string fields based on their database-defined length, providing user-friendly validation errors before the database operation fails.
+
+**Without validation** (default):
+
+```js
+someField: {
+  type: DataTypes.STRING(255),
+  allowNull: true,
+  field: 'some_field',
+}
+```
+
+**With validation enabled**:
+
+```js
+someField: {
+  type: DataTypes.STRING(255),
+  allowNull: true,
+  field: 'some_field',
+  validate: {
+    len: {
+      args: [0, 255],
+      msg: 'Field {tableName}.someField may not exceed 255 characters. Original DataType: DataTypes.STRING(255).',
+    },
+  },
+}
+```
+
+This provides user-friendly validation errors before the database operation fails, improving the user experience.
+
+Configure this feature using:
+
+```js
+const auto = new SequelizeAuto('database', 'user', 'pass', {
+  // ...other options
+  validationRules: [
+    {
+      type: 'stringLengthCheck',
+      errorMessageTemplate:
+        'Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}.',
+    },
+  ],
+});
+```
+
+The `errorMessageTemplate` supports the following placeholders:
+
+- `{tableName}` - The name of the table in format: schema.tableName
+- `{fieldName}` - The name of the field
+- `{minBound}` - The minimum length (always 0)
+- `{maxBound}` - The maximum length from the database column definition
+- `{dataType}` - sequalize datType
+
 ## ES6
 
 You can use the `-l es6` option to create the model definition files as ES6 classes, or `-l esm` option to create ES6 modules.  Then you would `require` or `import` the classes and call the `init(sequelize, DataTypes)` method on each class.
@@ -365,6 +428,12 @@ const auto = new SequelizeAuto('database', 'user', 'pass', {
     },
     tables: ['table1', 'table2', 'myschema.table3'] // use all tables, if omitted
     //...
+    validationRules: [
+      {
+        type: 'stringLengthCheck', // add length validation to string fields
+        errorMessageTemplate: 'Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}.' // custom message template
+      }
+    ],
 })
 ```
 
