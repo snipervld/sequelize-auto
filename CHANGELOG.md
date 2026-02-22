@@ -1,5 +1,9 @@
 # sequelize-auto change log
 
+## [0.8.11] - 2026-02-22
+
+* feat: Add automatic string length validation to generated models (snipervld's fork #3) (thanks @nikita-ermolaev-coral)
+
 ## [0.8.10] - 2025-08-20
 
 * Fix an issue, when `sequelize-auto` does nothing if `schemas` or `schema` options are empty.

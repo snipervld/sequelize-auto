@@ -1,6 +1,6 @@
 {
   "name": "@snipervld/sequelize-auto",
-  "version": "0.8.10",
+  "version": "0.8.11",
   "publishConfig": {
     "tag": "latest"
   },
@@ -59,7 +59,7 @@
   "contributors": [
     "Daniel Durante <me@danieldurante.com>",
     "Yuping Zuo (https://github.com/zypA13510)",
-    "Vladimir Zzgray (https://github.com/snipervld)"
+    "Vladimir Zagray (https://github.com/snipervld)"
   ],
   "license": "MIT",
   "dependencies": {
