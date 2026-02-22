@@ -213,7 +213,7 @@ The `errorMessageTemplate` supports the following placeholders:
 - `{fieldName}` - The name of the field
 - `{minBound}` - The minimum length (always 0)
 - `{maxBound}` - The maximum length from the database column definition
-- `{dataType}` - sequalize datType
+- `{dataType}` - sequelize dataType
 
 ## ES6
 
@@ -460,6 +460,7 @@ auto.run();
 1. `bigint` columns are treated as strings.
 2. `citext` columns are treated as strings.
 3. New option `--schemas`/`-S` - support for multiple schemas.
+4. Add `validationRules` - see [Validations](#validations) section for details.
 
 ## Testing
 

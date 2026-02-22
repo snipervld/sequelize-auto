@@ -266,7 +266,7 @@ export class AutoGenerator {
 
     let wroteAutoIncrement = false;
     const space = this.space;
-    
+
     // Capture the Sequelize type for validation purposes
     let sqType: string | null = null;
 
@@ -449,7 +449,7 @@ export class AutoGenerator {
               maxBound: bounds.max,
               dataType: sqType,
             });
-            
+
             str += space[3] + "validate: {\n";
             str += space[4] + "len: {\n";
             str += space[5] + `args: [${bounds.min}, ${bounds.max}],\n`;
@@ -460,7 +460,7 @@ export class AutoGenerator {
         }
     }
 
-    
+
 
     // removes the last `,` within the attribute options
     str = str.trim().replace(/,+$/, '') + "\n";
@@ -613,7 +613,7 @@ export class AutoGenerator {
     if (!sqType) {
       return false;
     }
-    
+
     // Check if the Sequelize type is a string type
     // Valid string types: STRING, STRING(n), TEXT, TEXT(tiny|medium|long), CHAR, CHAR(n)
     if (
@@ -636,28 +636,28 @@ export class AutoGenerator {
     if (!sqType) {
       return null;
     }
-    
+
     // Use dialect-specific implementation if available
     if (this.dialect.getStringBounds) {
       return this.dialect.getStringBounds(sqType);
     }
-    
+
     // Default fallback implementation
     const sizeMatch = sqType.match(/\((\d+)\)/);
     const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
-    
+
     if (sqType.startsWith('DataTypes.STRING')) {
       return { min: 0, max: size ?? 255 };
     }
-    
+
     if (sqType.startsWith('DataTypes.CHAR')) {
       return { min: 0, max: size ?? 255 };
     }
-    
+
     if (sqType.startsWith('DataTypes.TEXT')) {
       return { min: 0, max: null }; // TEXT is generally unbounded
     }
-    
+
     return null;
   }
 
