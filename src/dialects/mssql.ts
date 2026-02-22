@@ -139,30 +139,30 @@ export const mssqlOptions: DialectOptions = {
    * - TEXT: deprecated, up to 2^31-1 characters
    * - CHAR(n): 0 to n characters (max 8,000)
    * - NCHAR(n): 0 to n characters (max 4,000)
-   * 
+   *
    * @param sqType Sequelize DataType string
    * @returns StringBounds or null if not a string type
    */
   getStringBounds: (sqType: string): StringBounds | null => {
     if (!sqType) return null;
-    
+
     // Extract size from type like 100 from DataTypes.STRING(100)
     const sizeMatch = sqType.match(/\((\d+)\)/);
     const size = sizeMatch ? parseInt(sizeMatch[1], 10) : null;
-    
+
     if (sqType.startsWith('DataTypes.STRING')) {
       return { min: 0, max: size ?? 255 };
     }
-    
+
     if (sqType.startsWith('DataTypes.CHAR')) {
       return { min: 0, max: size ?? 255 };
     }
-    
+
     if (sqType.startsWith('DataTypes.TEXT')) {
       // TEXT maps to NVARCHAR(MAX) which is 2^31-1 characters, effectively unbounded
       return { min: 0, max: null };
     }
-    
+
     return null;
   }
 
