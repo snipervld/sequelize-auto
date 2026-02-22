@@ -204,27 +204,27 @@ export interface AutoOptions {
   validationRules?: ValidationRule[];
 }
 
-export interface ValidationRule {
+export type ValidationRule = {
   /** Types of validation that can be added and checked */
-  type: 'stringLengthCheck',
+  type: "stringLengthCheck";
   /** Error message template (with placeholders) for specific validation
    * Any of provided placeholders will be substituted by code-generator.
-   * You can setting up it's amount by itself by setting up custom template message
-   * 
+   * You can setting up it"s amount by itself by setting up custom template message
+   *
    * @example
-   * - 'stringLengthCheck': 'Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}.' 
+   * - "stringLengthCheck": "Field {tableName}.{fieldName} may not exceed {maxBound} characters. Original DataType: {dataType}."
    */
-  errorMessageTemplate: string,
+  errorMessageTemplate: string;
 };
 
 /**
  * Formats a string template by replacing placeholders with provided values.
  * Similar to .NET's string.Format method.
- * 
+ *
  * @param template The string template with placeholders in {key} format
  * @param params Object containing key-value pairs for substitution
  * @returns The formatted string with placeholders replaced
- * 
+ *
  * @example
  * formatString('{fieldName} max is {maxBound}', { fieldName: 'username', maxBound: 100 })
  * // Returns: 'username max is 100'

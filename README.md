@@ -156,6 +156,8 @@ var User = require('path/to/user')(sequelize, DataTypes);
 
 You can enable automatic validations using the `validationRules` option. The `validationRules` is an array where you can configure different validation types, each with its own error message template. When provided, sequelize-auto will add corresponding validation rules into generated models.
 
+> Note that you cannot specify validation messages via cli, but you can use `--config` to specify them in configuration options.
+
 Currently, only one validation type is available: **`stringLengthCheck`**.
 
 ### String Length Validation (`stringLengthCheck`)
