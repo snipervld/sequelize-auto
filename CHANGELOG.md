@@ -1,5 +1,10 @@
 # sequelize-auto change log
 
+## [0.8.12] - 2026-04-22
+
+* feat: support cross-schema foreign keys in PostgreSQL
+* BREAKING CHANGE: `getForeignKeysQuery` now correctly returns cross-schema references and no longer filters by constraint schema (thanks @polina-churlouskaya)
+
 ## [0.8.11] - 2026-02-22
 
 * feat: Add automatic string length validation to generated models (snipervld's fork #3) (thanks @nikita-ermolaev-coral)
