@@ -18,7 +18,7 @@ export const postgresOptions: DialectOptions = {
     tc.constraint_schema as source_schema,
     tc.table_name as source_table,
     kcu.column_name as source_column,
-    CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN ccu.constraint_schema ELSE null END AS target_schema,
+    CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN ccu.table_schema ELSE null END AS target_schema,
     CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN ccu.table_name ELSE null END AS target_table,
     CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN ccu.column_name ELSE null END AS target_column,
     co.column_default as extra,
@@ -30,8 +30,7 @@ export const postgresOptions: DialectOptions = {
       ON ccu.constraint_schema = tc.constraint_schema AND ccu.constraint_name = tc.constraint_name
     JOIN information_schema.columns AS co
       ON co.table_schema = kcu.table_schema AND co.table_name = kcu.table_name AND co.column_name = kcu.column_name
-    WHERE tc.table_name = ${addTicks(tableName)}
-      ${makeCondition('tc.constraint_schema', schemaName)}`;
+    WHERE tc.table_name = ${addTicks(tableName)}`;
   },
 
   /**

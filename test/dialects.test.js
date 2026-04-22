@@ -46,7 +46,8 @@ describe(helpers.getTestDialectTeaser('sequelize-auto dialects'), function() {
     it('postgres', function(done) {
       var query = dialects.postgres.getForeignKeysQuery('mytable_c', 'mydatabase_c');
       expect(query).to.include("table_name = 'mytable_c'");
-      expect(query).to.include("constraint_schema = 'mydatabase_c'");
+      //disabled, because there is a case, where the DB has two schemas and the table can have foreign keys to tables in both schemas. In that case, we want to get all foreign keys, not just the ones in the current schema.
+      //expect(query).to.include("constraint_schema = 'mydatabase_c'");
 
       query = dialects.postgres.getForeignKeysQuery('mytable_c', null);
       expect(query).to.include("table_name = 'mytable_c'");
@@ -67,7 +68,8 @@ describe(helpers.getTestDialectTeaser('sequelize-auto dialects'), function() {
     it('mssql', function(done) {
       var query = dialects.mssql.getForeignKeysQuery('mytable_d', 'mydatabase_d');
       expect(query).to.include("TABLE_NAME = 'mytable_d'");
-      expect(query).to.include("TABLE_SCHEMA = 'mydatabase_d'");
+      //disabled, because there is a case, where the DB has two schemas and the table can have foreign keys to tables in both schemas. In that case, we want to get all foreign keys, not just the ones in the current schema.
+      //expect(query).to.include("TABLE_SCHEMA = 'mydatabase_d'");
 
       query = dialects.mssql.getForeignKeysQuery('mytable_d', null);
       expect(query).to.include("TABLE_NAME = 'mytable_d'");
