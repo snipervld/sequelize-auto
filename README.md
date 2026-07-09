@@ -463,6 +463,7 @@ auto.run();
 2. `citext` columns are treated as strings.
 3. New option `--schemas`/`-S` - support for multiple schemas.
 4. Add `validationRules` - see [Validations](#validations) section for details.
+5. Fixed parsing of Postgres arrays, e.g. columns like "field some_enum[] NOT NULL DEFAULT ARRAY[]::smb.some_enum[]"
 
 ## Testing
 

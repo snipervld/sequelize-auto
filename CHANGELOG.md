@@ -1,5 +1,9 @@
 # sequelize-auto change log
 
+## [0.8.13] - 2026-07-09
+
+* fix: postgres arrays wasn't parsed correctly
+
 ## [0.8.12] - 2026-04-22
 
 * feat: support cross-schema foreign keys in PostgreSQL

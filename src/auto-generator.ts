@@ -350,11 +350,18 @@ export class AutoGenerator {
             val_text = /1|true/i.test(defaultVal) ? "true" : "false";
 
           } else if (this.isArray(field_type)) {
-            // remove outer {}
-            val_text = defaultVal.replace(/^{/, '').replace(/}$/, '');
-            if (val_text && this.isString(fieldObj.elementType)) {
-              // quote the array elements
-              val_text = val_text.split(',').map(s => `"${s}"`).join(',');
+            // fix for Postgres arrays:
+            // Postgres exposes array defaults as either a '{...}' literal or an ARRAY[...] constructor
+            const arrayCtor = defaultVal.match(/^ARRAY\[([\s\S]*)\]$/i);
+            val_text = arrayCtor
+              ? arrayCtor[1].trim()
+              : defaultVal.replace(/^{/, '').replace(/}$/, '');
+            const elementType = (fieldObj.elementType || '').toLowerCase();
+            if (val_text && (this.isString(elementType) || this.isEnum(elementType))) {
+              // quote the array elements, stripping any type casts and existing quotes
+              val_text = val_text.split(',')
+                .map(s => `"${s.trim().replace(/::.*$/, '').replace(/^'|'$/g, '').trim()}"`)
+                .join(',');
             }
             val_text = `[${val_text}]`;
 
@@ -815,7 +822,8 @@ export class AutoGenerator {
 
     if (this.isArray(fieldType)) {
       const eltype = this.getTypeScriptFieldType(fieldObj, "elementType");
-      jsType = eltype + '[]';
+      // wrap union element types (e.g. enum) in parens so [] applies to the whole union, e.g. (A | B)[] instead of A | B[]
+      jsType = (eltype.includes('|') ? `(${eltype})` : eltype) + '[]';
     } else if (this.isNumber(fieldType)) {
       jsType = 'number';
     } else if (this.isBoolean(fieldType)) {
